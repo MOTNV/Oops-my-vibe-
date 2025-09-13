@@ -1,0 +1,266 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&display=swap');
+
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.13);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px 0 rgba(120, 80, 255, 0.13);
+  --main-gradient: linear-gradient(135deg, #ffe6f7 0%, #e0cfff 100%);
+  --main-font: 'Outfit', sans-serif;
+  --main-color: #fff;
+  --accent-color: #b7aaff;
+  --accent-color2: #e0cfff;
+}
+
+/* ====== 전체 배경 및 폰트 ====== */
+body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: var(--main-gradient);
+  font-family: var(--main-font);
+  color: #3a2a3a;
+  overflow-x: hidden;
+}
+
+/* =====================
+   공통 유틸리티 클래스
+   ===================== */
+.u-center-text { text-align: center; }
+.u-padding-lg { padding: 30px; }
+.u-btn { padding: 10px; margin: 10px; font-size: 1rem; }
+
+/* =====================
+   음악 추천 페이지 레이아웃
+   ===================== */
+.musicrec {}
+
+/* =====================
+   플레이어 블록
+   ===================== */
+.player {
+  margin: 60px auto 0 auto;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 20px;
+  padding: 40px 30px 30px 30px;
+  width: 500px;
+  max-width: 90%;
+  text-align: center;
+  position: relative;
+  z-index: 10;
+}
+
+.player__song-info {
+  margin-bottom: 15px;
+}
+.player__song-title {
+  font-size: 2.2rem;
+  font-weight: 400;
+  color: #7c5fff;
+  margin-bottom: 8px;
+  letter-spacing: -1px;
+  text-shadow: 0 2px 16px rgba(120, 80, 255, 0.13);
+}
+.player__artist {
+  font-size: 1.2rem;
+  color: #b7aaff;
+  margin-bottom: 18px;
+  font-weight: 300;
+  letter-spacing: 1px;
+}
+
+/* 진행 바 */
+.progress-container {
+  width: 90%; /* 플레이어 너비에 맞춰 조정 */
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin: 20px auto;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, 
+      rgba(255, 255, 255, 0.9),
+      rgba(255, 255, 255, 0.7));
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.1s linear;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 플레이어 컨트롤 영역 */
+.player__controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+  margin-top: 20px;
+}
+
+/* 플레이/정지/이전/다음 버튼 */
+.player__button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 28px;
+  padding: 10px;
+  transition: all 0.3s ease;
+  opacity: 0.8;
+  position: relative;
+}
+.player__button:hover {
+  transform: scale(1.1);
+  opacity: 1;
+}
+.player__button--play-pause {
+  font-size: 42px;
+  background: var(--glass-bg);
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+.player__button--play-pause:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.1) translateY(-2px);
+}
+
+/* =====================
+   분석 결과 출력 블록
+   ===================== */
+.musicrec__analysis-output {
+  white-space: pre-wrap;
+  text-align: left;
+  background: #111;
+  padding: 20px;
+  margin-top: 30px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* =====================
+   메인 페이지 이동 버튼
+   ===================== */
+   .musicrec__main-link {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: bold;
+    box-shadow: 0 2px 12px 0 rgba(120, 80, 255, 0.10);
+    transition: background 0.2s, color 0.2s;
+    z-index: 999; /* 다른 요소 위에 표시 */
+  }
+  
+  .musicrec__main-link:hover {
+    background-color: #3b2b86;
+    color: #fff;
+  }
+  
+
+/* ====== 오른쪽 사이드 추천 카드 ====== */
+.musicrec__sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 340px;
+  height: 100vh;
+  background: var(--glass-bg);
+  border-left: 1.5px solid var(--glass-border);
+  box-shadow: -8px 0 32px 0 rgba(120, 80, 255, 0.10);
+  backdrop-filter: blur(18px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 32px 32px 32px;
+  z-index: 20;
+  gap: 18px;
+}
+.musicrec__sidebar label,
+.musicrec__sidebar select,
+.musicrec__sidebar button {
+  width: 100%;
+  font-size: 1.08rem;
+  color: #000;
+}
+.musicrec__sidebar select {
+  border-radius: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+  color: #3a2a3a;
+  padding: 12px 10px;
+  margin-bottom: 10px;
+  font-family: var(--main-font);
+  font-size: 1.08rem;
+  box-shadow: none;
+  outline: none;
+  transition: border 0.2s, background 0.2s;
+}
+.musicrec__sidebar select:focus {
+  border: 1.5px solid var(--accent-color);
+}
+.musicrec__sidebar select:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+.musicrec__sidebar button {
+  background: linear-gradient(135deg, rgba(183, 170, 255, 0.7), rgba(124, 95, 255, 0.7));
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  font-size: 1.1rem;
+  font-family: var(--main-font);
+  font-weight: 500;
+  padding: 14px 0;
+  margin-top: 10px;
+  box-shadow: 0 4px 16px rgba(120, 80, 255, 0.15);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.musicrec__sidebar button:hover {
+  background: linear-gradient(135deg, rgba(124, 95, 255, 0.8), rgba(183, 170, 255, 0.8));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(120, 80, 255, 0.25);
+}
+
+/* ====== 반응형 ====== */
+@media (max-width: 900px) {
+  .musicrec__sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    border-left: none;
+    border-top: 1.5px solid var(--glass-border);
+    box-shadow: none;
+    flex-direction: row;
+    justify-content: center;
+    padding: 32px 10px;
+    margin-bottom: 24px;
+  }
+  .player {
+    margin: 0;
+    min-height: auto;
+    padding-bottom: 40px;
+  }
+  .musicrec__audio {
+    width: 100%;
+    min-width: 0;
+  }
+} 

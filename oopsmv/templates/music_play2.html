@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI 음악 추천</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="mainpage.css">
+  <link rel="stylesheet" href="music_play2.css">
+</head>
+<body class="u-center-text u-padding-lg">
+
+  <!-- 🌁 배경: 기본은 이미지, 비 올 땐 영상 -->
+  <div class="mainpage__video-container">
+    <img id="bgImage" src="mainimage.png" alt="배경 이미지"
+         style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0;">
+    <video id="bgVideo" autoplay loop muted
+           style="width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; top: 0; left: 0;">
+      <source id="videoSource" src="" type="video/mp4">
+      브라우저가 비디오를 지원하지 않습니다.
+    </video>
+  </div>
+
+  <!-- 🎵 추천 옵션 -->
+  <div class="musicrec__sidebar">
+    <h1 style="margin-bottom: 32px; font-size: 2rem; font-weight: 500; color: #7c5fff; letter-spacing: 2px;">음악추천</h1>
+    <label>상황:
+      <select id="scenario" class="u-btn">
+        <option value="stressed|focus">💼 집중해서 일할 때</option>
+        <option value="calm|study">📚 편안하게 공부할 때</option>
+        <option value="stressed|work">🌙 야근할 때</option>
+        <option value="energetic|exercise">🏃 신나게 운동할 때</option>
+        <option value="happy|exercise">🌅 행복한 아침 조깅</option>
+        <option value="stressed|exercise">💪 스트레스 풀러 운동</option>
+        <option value="peaceful|relaxation">🛋️ 힐링이 필요할 때</option>
+        <option value="calm|meditation">🧘 명상하며 마음 정리</option>
+        <option value="melancholic|relaxation">😔 우울할 때 혼자만의 시간</option>
+        <option value="happy|party">🎉 친구들과 즐거운 파티</option>
+        <option value="romantic|social">💕 로맨틱한 데이트</option>
+        <option value="dramatic|social">🍷 분위기 있는 저녁 모임</option>
+        <option value="uplifting|commute">🚗 출근길 기분전환</option>
+        <option value="peaceful|commute">🚌 퇴근길 힐링타임</option>
+        <option value="peaceful|sleep">😴 잠들기 전 마음 진정</option>
+        <option value="stressed|sleep">🌙 불면증으로 잠 못 이룰 때</option>
+        <option value="dramatic|relaxation">✨ 감동적인 순간을 느끼고 싶을 때</option>
+        <option value="energetic|focus">⚡ 에너지 충전이 필요할 때</option>
+        <option value="happy|work">🌟 기분이 좋아서 뭔가 하고 싶을 때</option>
+      </select>
+    </label>
+    <br/>
+    <label>날씨:
+      <select id="weather" class="u-btn">
+        <option value="sunny">☀️ 맑음</option>
+        <option value="cloudy">☁️ 흐림</option>
+        <option value="rainy">🌧️ 비</option>
+        <option value="snowy">❄️ 눈</option>
+        <option value="windy">💨 바람</option>
+      </select>
+    </label>
+    <br/>
+    <button class="u-btn" onclick="recommend()">🎶 추천 받기</button>
+  </div>
+
+  <!-- 🎶 음악 플레이어 -->
+  <div class="mainpage__main-content" style="margin-right:380px; display:flex; flex-direction:column; justify-content:flex-start; align-items:center; padding-top:40px;">
+    <div class="mainpage__time-display" id="currentTime">00:00</div>
+    <div class="mainpage__weather-emoji">🌈</div>
+    <div class="player">
+      <h2 id="track-title">추천 곡 제목</h2>
+      <p id="track-artist">아티스트</p>
+      <div class="progress-container" onclick="seekTo(event)">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <audio id="audio"></audio>
+      <div class="player__controls">
+        <button class="player__button" onclick="prevTrack()" aria-label="이전 곡"><i class="fas fa-backward"></i></button>
+        <button class="player__button" onclick="togglePlay()" aria-label="재생/정지"><i class="fas fa-play" id="playPauseIcon"></i></button>
+        <button class="player__button" onclick="nextTrack()" aria-label="다음 곡"><i class="fas fa-forward"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 20px; text-align: center;">
+    <a href="front1.html" class="musicrec__main-link">메인 페이지로</a>
+  </div>
+
+  <!-- 🧠 스크립트 -->
+  <script>
+    let allTracks = [];
+    let currentTrackIndex = 0;
+    let isPlaying = false;
+    let progressInterval;
+
+    const audio = document.getElementById('audio');
+    const playPauseIcon = document.getElementById('playPauseIcon');
+    const progressBar = document.getElementById('progressBar');
+    const trackTitle = document.getElementById('track-title');
+    const trackArtist = document.getElementById('track-artist');
+
+    function updateTime() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    function updateTrack() {
+      const track = allTracks[currentTrackIndex];
+      if (!track) return;
+      trackTitle.textContent = track.name;
+      trackArtist.textContent = track.artist_name;
+      audio.src = track.audio;
+      progressBar.style.width = '0%';
+      playPauseIcon.classList.remove('fa-pause');
+      playPauseIcon.classList.add('fa-play');
+      isPlaying = false;
+      clearInterval(progressInterval);
+    }
+
+    function updateProgress() {
+      if (audio.duration) {
+        const progress = (audio.currentTime / audio.duration) * 100;
+        progressBar.style.width = progress + '%';
+      }
+    }
+
+    function seekTo(event) {
+      const progressContainer = document.querySelector('.progress-container');
+      const percent = event.offsetX / progressContainer.offsetWidth;
+      if (audio.duration) {
+        audio.currentTime = percent * audio.duration;
+        updateProgress();
+      }
+    }
+
+    function togglePlay() {
+      if (!allTracks.length) return;
+      if (isPlaying) {
+        audio.pause();
+        playPauseIcon.classList.remove('fa-pause');
+        playPauseIcon.classList.add('fa-play');
+        clearInterval(progressInterval);
+      } else {
+        audio.play();
+        playPauseIcon.classList.remove('fa-play');
+        playPauseIcon.classList.add('fa-pause');
+        progressInterval = setInterval(updateProgress, 100);
+      }
+      isPlaying = !isPlaying;
+    }
+
+    function nextTrack() {
+      if (!allTracks.length) return;
+      currentTrackIndex = (currentTrackIndex + 1) % allTracks.length;
+      updateTrack();
+    }
+
+    function prevTrack() {
+      if (!allTracks.length) return;
+      currentTrackIndex = (currentTrackIndex - 1 + allTracks.length) % allTracks.length;
+      updateTrack();
+    }
+
+    audio.addEventListener('timeupdate', updateProgress);
+    audio.addEventListener('ended', () => {
+      playPauseIcon.classList.remove('fa-pause');
+      playPauseIcon.classList.add('fa-play');
+      isPlaying = false;
+      clearInterval(progressInterval);
+    });
+
+    function recommend() {
+      const scenario = document.getElementById("scenario");
+      const weather = document.getElementById("weather");
+      const weatherEmojiDiv = document.querySelector(".mainpage__weather-emoji");
+      const bgVideo = document.getElementById("bgVideo");
+      const videoSource = document.getElementById("videoSource");
+      const bgImage = document.getElementById("bgImage");
+
+      if (!scenario || !weather) {
+        alert("선택 항목을 찾을 수 없습니다.");
+        return;
+      }
+
+      const [emotion, activity] = scenario.value.split("|");
+      const weatherValue = weather.value;
+
+      const weatherEmojis = {
+        sunny: "☀️",
+        cloudy: "☁️",
+        rainy: "🌧️",
+        snowy: "❄️",
+        windy: "💨"
+      };
+      weatherEmojiDiv.textContent = weatherEmojis[weatherValue] || "🌈";
+
+
+      function getRandomVideo(videoList) {
+  return videoList[Math.floor(Math.random() * videoList.length)];
+}
+
+
+      const weatherVideos = {
+        sunny: [
+          "video/Sunny/sunny_1.mp4",
+          "video/Sunny/sunny_2.mp4",
+          "video/Sunny/sunny_3.mp4"
+        ],
+        rainy: [
+          "video/Rainy/rainy_1.mp4",
+          "video/Rainy/rainy_2.mp4",
+          "video/Rainy/rainy_3.mp4",
+          "video/Rainy/rainy_4.mp4",
+          "video/Rainy/rainy_5.mp4",
+        ],
+        cloudy: [
+          "video/Cloudy/cloudy_1.mp4",
+          "video/Cloudy/cloudy_2.mp4",
+          "video/Cloudy/cloudy_3.mp4"
+        ],
+        snowy: [
+          "video/Snowy/snowy_1.mp4",
+          "video/Snowy/snowy_2.mp4",
+          "video/Snowy/snowy_3.mp4",
+          "video/Snowy/snowy_4.mp4"
+        ],
+        windy: [
+          "video/Windy/windy_1.mp4",
+          "video/Windy/windy_2.mp4",
+          "video/Windy/windy_3.mp4",
+          "video/Windy/windy_4.mp4"
+        ]
+};
+
+if (weatherValue in weatherVideos) {
+  const selectedVideo = getRandomVideo(weatherVideos[weatherValue]);
+  videoSource.src = selectedVideo;
+  bgVideo.load();
+  bgVideo.style.display = "block";
+  bgImage.style.display = "none";
+} else {
+  bgVideo.style.display = "none";
+  bgImage.style.display = "block";
+}
+
+
+      fetch("http://localhost:5000/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emotion, activity, weather: weatherValue })
+      })
+        .then(res => res.json())
+        .then(data => {
+          const tracks = data.tracks;
+          if (!tracks || tracks.length === 0) {
+            alert("추천 결과가 없습니다. 다른 조건으로 시도해보세요.");
+            return;
+          }
+          allTracks = tracks;
+          currentTrackIndex = 0;
+          updateTrack();
+        })
+        .catch(err => {
+          console.error("❌ 오류:", err);
+          alert("추천 요청 중 오류가 발생했습니다.");
+        });
+    }
+
+    window.onload = function () {
+      allTracks = [
+        { name: '테스트 곡 1', artist_name: '테스트 아티스트 1', audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
+        { name: '테스트 곡 2', artist_name: '테스트 아티스트 2', audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' }
+      ];
+      currentTrackIndex = 0;
+      updateTrack();
+    };
+  </script>
+
+</body>
+</html>

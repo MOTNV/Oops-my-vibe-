@@ -1,0 +1,246 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&display=swap');
+
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #000;
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    overflow: hidden;
+}
+
+/* =====================
+   공통 유틸리티 클래스
+   ===================== */
+.u-flex-center { display: flex; justify-content: center; align-items: center; }
+.u-glass-bg { background: var(--glass-bg); backdrop-filter: blur(10px); }
+.u-shadow { box-shadow: var(--glass-shadow); }
+
+/* =====================
+   메인페이지 레이아웃 블록
+   ===================== */
+.mainpage {}
+
+/* 배경 동영상 컨테이너 */
+.mainpage__video-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+}
+.mainpage__video-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.85);
+}
+
+/* 메인 콘텐츠 영역 */
+.mainpage__main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    padding-top: 150px;
+    padding-bottom: 200px;
+    position: relative;
+}
+
+/* 시간 표시 */
+.mainpage__time-display {
+    font-size: 180px;
+    font-weight: 400;
+    letter-spacing: -6px;
+    color: #fff;
+    text-shadow: 
+        0 0 30px rgba(255, 255, 255, 0.3),
+        0 0 60px rgba(255, 255, 255, 0.2),
+        0 0 90px rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 3;
+    background: linear-gradient(45deg, #fff, #f0f0f0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.mainpage__time-display::after { display: none; }
+
+/* 날씨 이모지 */
+.mainpage__weather-emoji {
+    font-size: 80px;
+    opacity: 0.9;
+    filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.3));
+    margin-top: -20px;
+}
+
+/* =====================
+   플레이어 블록
+   ===================== */
+.player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--glass-bg);
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+}
+
+/* 곡 정보 */
+.player__song-info {
+    text-align: center;
+    margin-bottom: 15px;
+    padding: 0 20px;
+}
+.player__song-title {
+    font-size: 42px;
+    font-weight: 300;
+    margin-bottom: 4px;
+    letter-spacing: -1px;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+.player__artist {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 10px;
+    font-weight: 300;
+    letter-spacing: 1px;
+}
+
+/* 진행 바 */
+.player__progress-container {
+    width: 100%;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 1.5px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.player__progress-container:hover {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.15);
+}
+.player__progress-container:hover::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0.1),
+        rgba(255, 255, 255, 0.2),
+        rgba(255, 255, 255, 0.1));
+    animation: shimmer 2s infinite;
+}
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+.player__progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0.9),
+        rgba(255, 255, 255, 0.7));
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.1s linear;
+    position: relative;
+    overflow: hidden;
+}
+.player__progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent);
+    animation: progress-shimmer 2s infinite;
+}
+@keyframes progress-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* 플레이어 컨트롤 영역 */
+.player__controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 50px;
+}
+
+/* 플레이/정지/이전/다음 버튼 */
+.player__button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 28px;
+    padding: 10px;
+    transition: all 0.3s ease;
+    opacity: 0.8;
+    position: relative;
+}
+.player__button:hover {
+    transform: scale(1.1);
+    opacity: 1;
+}
+.player__button--play-pause {
+    font-size: 42px;
+    background: var(--glass-bg);
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+}
+.player__button--play-pause:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.1) translateY(-2px);
+}
+.player__button--play-pause::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, 
+        rgba(255, 255, 255, 0.1),
+        rgba(255, 255, 255, 0.2),
+        rgba(255, 255, 255, 0.1));
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.player__button--play-pause:hover::after {
+    opacity: 1;
+} 

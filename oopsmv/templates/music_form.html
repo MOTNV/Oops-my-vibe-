@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>음악 플레이어</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'sans-serif';
+      color: white;
+      text-align: center;
+    }
+    video#bgVideo {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+    }
+    .clock {
+      font-size: 5rem;
+      margin-top: 100px;
+    }
+    .weather-emoji {
+      font-size: 3rem;
+      margin-top: 20px;
+    }
+    .player-container {
+      position: absolute;
+      bottom: 30px;
+      width: 100%;
+    }
+    .song-info {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+    .controls i {
+      margin: 0 15px;
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <video id="bgVideo" autoplay muted loop>
+    <source src="rain_bg.mp4" type="video/mp4" />
+    비디오를 지원하지 않습니다.
+  </video>
+
+  <div class="clock" id="clock">00:00</div>
+  <div class="weather-emoji" id="weather">🌧️</div>
+
+  <div class="player-container">
+    <div class="song-info">
+      <div id="song-title">추천받은 곡 제목</div>
+      <div id="song-artist">추천받은 아티스트</div>
+    </div>
+    <audio id="audio" controls style="width: 80%;"></audio>
+  </div>
+
+  <script>
+    // 시계 갱신
+    setInterval(() => {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('clock').textContent = `${hh}:${mm}`;
+    }, 1000);
+  </script>
+
+  <script>
+    // GPS + 추천 요청 (1회만 수행)
+    window.addEventListener('DOMContentLoaded', async () => {
+      if (!navigator.geolocation) {
+        alert("이 브라우저는 GPS를 지원하지 않습니다.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(async pos => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const acc = pos.coords.accuracy;
+
+        try {
+          // 위치 저장
+          const saveRes = await fetch('/save_location', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lat, lon, accuracy: acc })
+          });
+
+          if (!saveRes.ok) {
+            throw new Error("위치 저장 실패");
+          }
+
+          // 추천 요청 (예시 감정: HAPPY)
+          const recRes = await fetch('/recommend_with_location', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ emotion: "happy" })
+          });
+
+          const recData = await recRes.json();
+          if (!recData.success || !recData.tracks || recData.tracks.length === 0) {
+            alert("추천 결과가 없습니다.");
+            return;
+          }
+
+          // 랜덤 곡 선택
+          const track = recData.tracks[Math.floor(Math.random() * recData.tracks.length)];
+          document.getElementById('song-title').textContent = track.name;
+          document.getElementById('song-artist').textContent = track.artist;
+          document.getElementById('audio').src = track.audio;
+          document.getElementById('audio').play();
+
+          // 날씨 표시
+          document.getElementById('weather').textContent = recData.weather || "🌤️";
+
+        } catch (e) {
+          console.error("추천 요청 오류:", e);
+          alert("추천을 받아오는 도중 문제가 발생했습니다.");
+        }
+
+      }, () => {
+        alert("위치 정보를 가져오는 데 실패했습니다.");
+      });
+    });
+  </script>
+</body>
+</html>

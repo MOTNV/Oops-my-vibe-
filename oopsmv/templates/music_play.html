@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>음악 플레이어</title>
+    <link rel="stylesheet" href="mainpage.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="mainpage__video-container">
+        <video id="bgVideo" autoplay loop muted>
+            <source src="music1.mp4" type="video/mp4">
+            브라우저가 비디오를 지원하지 않습니다.
+        </video>
+    </div>
+
+    <div class="mainpage__main-content">
+        <div class="mainpage__time-display" id="currentTime">00:00</div>
+        <div class="mainpage__weather-emoji">🌧️</div>
+    </div>
+
+    <div class="player">
+        <div class="player__song-info">
+            <div class="player__song-title">Rain</div>
+            <div class="player__artist">Tae-yeon</div>
+        </div>
+        <div class="player__progress-container" onclick="seekTo(event)">
+            <div class="player__progress-bar" id="progressBar"></div>
+        </div>
+        <div class="player__controls">
+            <button class="player__button" onclick="previousTrack()">
+                <i class="fas fa-backward"></i>
+            </button>
+            <button class="player__button player__button--play-pause" onclick="togglePlay()">
+                <i class="fas fa-pause"></i>
+            </button>
+            <button class="player__button" onclick="nextTrack()">
+                <i class="fas fa-forward"></i>
+            </button>
+        </div>
+    </div>
+
+    <audio id="audioPlayer" src="your-music.mp3"></audio>
+
+    <script>
+        function recommend() {
+          const scenario = document.getElementById("scenario");
+          const weather = document.getElementById("weather");
+          const analysisOutput = document.getElementById("analysis-output");
+    
+          if (!scenario || !weather) {
+            alert("선택 항목을 찾을 수 없습니다.");
+            return;
+          }
+    
+          const [emotion, activity] = scenario.value.split("|");
+          console.log("🔍 전송할 추천 요청 데이터:", { emotion, activity, weather: weather.value });
+    
+          fetch("http://localhost:5000/recommend", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ emotion, activity, weather: weather.value })
+          })
+          .then(res => {
+            console.log("✅ 서버 응답 상태코드:", res.status);
+            return res.json();
+          })
+          .then(data => {
+            console.log("✅ 추천 결과 (data):", data);
+    
+            // 1) 분석 리포트 출력
+            if (data.analysis) {
+              analysisOutput.textContent = data.analysis;
+            } else {
+              analysisOutput.textContent = "분석 리포트를 받아오지 못했습니다.";
+            }
+    
+            // 2) 트랙 리스트 중 랜덤 1개 선택 및 재생
+            const tracks = data.tracks || [];
+            if (tracks.length === 0) {
+              alert("추천 결과가 없습니다. 다른 조건으로 시도해보세요.");
+              return;
+            }
+            const track = tracks[Math.floor(Math.random() * tracks.length)];
+            console.log("🎶 선택된 트랙:", track);
+    
+            if (!track.audio) {
+              alert("선택된 음악에 재생 가능한 오디오가 없습니다.");
+              return;
+            }
+    
+            document.getElementById("track-title").textContent  = track.name;
+            document.getElementById("track-artist").textContent = track.artist_name;
+            const audioEl = document.getElementById("audio");
+            audioEl.src = track.audio;
+            audioEl.play();
+          })
+          .catch(err => {
+            console.error("❌ 오류:", err);
+            alert("추천 요청 중 오류가 발생했습니다.");
+          });
+        }
+      </script>
+</body>
+</html>
